@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Статистика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="aero-panel">
+        <h1>Ваша статистика</h1>
+        
+        <table class="stats-table">
+            <tr>
+                <th>Дата</th>
+                <th>Калории</th>
+                <th>Белки</th>
+                <th>Жиры</th>
+                <th>Углеводы</th>
+            </tr>
+            {% for stat in stats %}
+            <tr>
+                <td>{{ stat.date.strftime('%d.%m.%Y') }}</td>
+                <td>{{ stat.total_calories|round(1) }}</td>
+                <td>{{ stat.total_proteins|round(1) }}г</td>
+                <td>{{ stat.total_fats|round(1) }}г</td>
+                <td>{{ stat.total_carbs|round(1) }}г</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>

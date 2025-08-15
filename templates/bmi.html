@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор ИМТ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .bmi-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 120, 215, 0.2);
+        }
+        
+        .bmi-result {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7fc1ff, #c6e2ff);
+        }
+        
+        .bmi-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #005a9e;
+            margin: 10px 0;
+        }
+        
+        .bmi-category {
+            font-size: 24px;
+            color: #003366;
+        }
+        
+        .bmi-scale {
+            margin: 30px 0;
+            background: #f0f8ff;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .scale-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        
+        .scale-item.active {
+            background: #0078d7;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="aero-bubble" style="width: 120px; height: 120px; top: 10%; left: 20%;"></div>
+    <div class="aero-bubble" style="width: 80px; height: 80px; bottom: 15%; right: 25%;"></div>
+    
+    <div class="bmi-container">
+        <h1>Индекс массы тела (ИМТ)</h1>
+        
+        {% if bmi_value %}
+        <div class="bmi-result">
+            <p>Ваш ИМТ:</p>
+            <div class="bmi-value">{{ bmi_value }}</div>
+            <div class="bmi-category">{{ bmi_category }}</div>
+        </div>
+        
+        <div class="bmi-scale">
+            <div class="scale-item {% if bmi_value < 18.5 %}active{% endif %}">
+                <span>Недостаточный вес</span>
+                <span>< 18.5</span>
+            </div>
+            <div class="scale-item {% if 18.5 <= bmi_value < 25 %}active{% endif %}">
+                <span>Нормальный вес</span>
+                <span>18.5 - 24.9</span>
+            </div>
+            <div class="scale-item {% if 25 <= bmi_value < 30 %}active{% endif %}">
+                <span>Избыточный вес</span>
+                <span>25 - 29.9</span>
+            </div>
+            <div class="scale-item {% if bmi_value >= 30 %}active{% endif %}">
+                <span>Ожирение</span>
+                <span>≥ 30</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="error-message">
+            Для расчета ИМТ укажите ваш рост и вес в профиле
+        </div>
+        {% endif %}
+        
+        <div class="form-footer" style="margin-top: 30px;">
+            <a href="{{ url_for('index') }}" class="aero-button">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

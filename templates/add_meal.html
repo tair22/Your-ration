@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить блюдо</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="aero-panel">
+        <h1>Добавить блюдо</h1>
+        
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <select class="aero-input" name="meal_type" required>
+                <option value="">Выберите прием пищи</option>
+                {% for meal_type in meal_types %}
+                <option value="{{ meal_type }}">
+                    {{ meal_type|capitalize }}
+                </option>
+                {% endfor %}
+            </select>
+            
+            <input type="text" class="aero-input" name="name" placeholder="Название блюда" required>
+            <input type="number" step="0.1" class="aero-input" name="calories" placeholder="Калории (ккал)" required>
+            <input type="number" step="0.1" class="aero-input" name="proteins" placeholder="Белки (г)" required>
+            <input type="number" step="0.1" class="aero-input" name="fats" placeholder="Жиры (г)" required>
+            <input type="number" step="0.1" class="aero-input" name="carbs" placeholder="Углеводы (г)" required>
+            
+            <button type="submit" class="aero-button">Добавить</button>
+        </form>
+        
+        <div class="form-footer">
+            <a href="{{ url_for('index') }}">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

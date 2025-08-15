@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 120, 215, 0.2);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-header h1 {
+            color: #005a9e;
+            font-weight: 300;
+        }
+
+        .profile-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .profile-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #003366;
+            font-weight: 500;
+        }
+
+        .profile-form input,
+        .profile-form select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(0, 90, 158, 0.3);
+            border-radius: 20px;
+            background: #e6f2ff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .profile-form input:focus,
+        .profile-form select:focus {
+            outline: none;
+            border-color: #0078d7;
+            box-shadow: 0 0 8px rgba(0, 120, 215, 0.4);
+        }
+
+        .gender-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .gender-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .save-btn {
+            background: linear-gradient(to bottom, #4ca5ff, #0078d7);
+            color: white;
+            border: none;
+            padding: 12px 0;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(to bottom, #5cb0ff, #0086f0);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #0078d7;
+            text-decoration: none;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .flash-success {
+            background: #dff0d8;
+            color: #3c763d;
+        }
+
+        .flash-error {
+            background: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="aero-bubble" style="width: 120px; height: 120px; top: 10%; left: 20%;"></div>
+    <div class="aero-bubble" style="width: 80px; height: 80px; bottom: 15%; right: 25%;"></div>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>Мой профиль</h1>
+        </div>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <form class="profile-form" method="POST">
+            <div class="form-group">
+                <label for="login">Логин</label>
+                <input type="text" id="login" value="{{ user.login }}" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="age">Возраст</label>
+                <input type="number" id="age" name="age" value="{{ user.age if user.age else '' }}" min="1" max="120">
+            </div>
+
+            <div class="form-group">
+                <label for="height">Рост (см)</label>
+                <input type="number" id="height" name="height" value="{{ user.height if user.height else '' }}" min="100" max="250">
+            </div>
+
+            <div class="form-group">
+                <label for="weight">Вес (кг)</label>
+                <input type="number" step="0.1" id="weight" name="weight" value="{{ user.weight if user.weight else '' }}" min="30" max="300">
+            </div>
+
+            <div class="form-group">
+                <label>Пол</label>
+                <div class="gender-options">
+                    <div class="gender-option">
+                        <input type="radio" id="male" name="gender" value="male" {% if user.gender == 'male' %}checked{% endif %}>
+                        <label for="male">Мужской</label>
+                    </div>
+                    <div class="gender-option">
+                        <input type="radio" id="female" name="gender" value="female" {% if user.gender == 'female' %}checked{% endif %}>
+                        <label for="female">Женский</label>
+                    </div>
+                    <div class="gender-option">
+                        <input type="radio" id="other" name="gender" value="other" {% if not user.gender or user.gender == 'other' %}checked{% endif %}>
+                        <label for="other">Другой</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="save-btn">Сохранить изменения</button>
+        </form>
+
+        <a href="{{ url_for('index') }}" class="back-link">← На главную</a>
+    </div>
+</body>
+</html>

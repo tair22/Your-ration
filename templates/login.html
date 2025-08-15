@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход</title>
+  <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body>
+  <!-- Пузырьки фона -->
+  <div class="aero-bubble" style="width: 100px; height: 100px; top: 10%; left: 15%;"></div>
+  <div class="aero-bubble" style="width: 70px; height: 70px; top: 70%; left: 25%;"></div>
+  <div class="aero-bubble" style="width: 120px; height: 120px; top: 40%; right: 20%;"></div>
+
+  <div class="aero-panel">
+    <h1>Вход в систему</h1>
+    
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <input type="text" class="aero-input" name="email" placeholder="Логин" required>
+      <input type="password" class="aero-input" name="password" placeholder="Пароль" required>
+      <button type="submit" class="aero-button">Войти</button>
+    </form>
+
+    <div class="form-footer">
+      Нет аккаунта? <a href="{{ url_for('register') }}">Создать</a>
+    </div>
+  </div>
+</body>
+</html>
