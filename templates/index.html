@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ежедневный контроль рациона</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         :root {
             --breakfast-color: #8BC34A;
@@ -100,6 +100,10 @@
             border-top: 5px solid var(--dinner-color);
         }
 
+        .snack-card {
+            border-top: 5px solid var(--snack-color);
+        }
+
         .meal-header {
             display: flex;
             justify-content: space-between;
@@ -122,6 +126,10 @@
 
         .dinner-title {
             color: var(--dinner-color);
+        }
+
+        .snack-title {
+            color: var(--snack-color);
         }
 
         .meal-calories {
@@ -159,12 +167,35 @@
         .food-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
         }
 
         .food-name {
             font-weight: 500;
             color: #333;
+            flex-grow: 1;
+        }
+
+        .food-actions {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .edit-btn {
+            background: #0078d7;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 12px;
         }
 
         .delete-btn {
@@ -234,20 +265,27 @@
             box-shadow: 0 3px 8px rgba(0,0,0,0.3);
         }
 
+        /* ИЗМЕНЕНИЯ ДЛЯ НАВИГАЦИОННОЙ ПАНЕЛИ */
         .footer-nav {
             display: flex;
             justify-content: space-around;
             background: white;
-            padding: 15px 0;
+            padding: 35px 0; /* Увеличили отступы сверху и снизу */
             border-radius: 0 0 15px 15px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            min-height: 80px; /* Минимальная высота */
         }
 
         .nav-item {
             text-align: center;
-            font-size: 14px;
+            font-size: 12px; /* Немного уменьшили размер шрифта */
             color: #666;
             text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 55px; /* Минимальная ширина для каждого элемента */
         }
 
         .nav-item.active {
@@ -255,10 +293,35 @@
             font-weight: 500;
         }
 
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
         .food-item.empty {
             text-align: center;
             color: #666;
             font-style: italic;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .flash-success {
+            background: #dff0d8;
+            color: #3c763d;
+        }
+
+        .flash-error {
+            background: #f2dede;
+            color: #a94442;
         }
     </style>
 </head>
@@ -269,7 +332,15 @@
             <div class="time">{{ daily_data.time }} ✅</div>
             <div class="date">{{ daily_data.date }}</div>
         </div>
-        
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
         <div class="user-stats">
             <div class="stat-item">
                 <div class="value">{{ user.weight }} кг</div>
@@ -295,6 +366,7 @@
                 <div class="meal-header">
                     <div class="meal-title breakfast-title">Завтрак</div>
                     <div class="meal-calories">{{ daily_data.breakfast.total }} ккал</div>
+                    <div class="meal-grams">{{ daily_data.breakfast.total }} г</div>
                     <a href="{{ url_for('add_meal') }}?meal_type=breakfast" class="add-food-btn">
                         <span>+</span> добавить
                     </a>
@@ -306,11 +378,15 @@
                         <div class="food-item">
                             <div class="food-header">
                                 <div class="food-name">{{ food.name }}</div>
-                                <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
-                                    <button type="submit" class="delete-btn">×</button>
-                                </form>
+                                <div class="food-actions">
+                                    <a href="{{ url_for('edit_meal', id=food.id) }}" class="edit-btn">✏️</a>
+                                    <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
+                                        <button type="submit" class="delete-btn">×</button>
+                                    </form>
+                                </div>
                             </div>
                             <div class="food-calories">{{ food.calories }} ккал</div>
+                            <div class="food-grams">{{ food.grams }} вес г</div>
                             <div class="food-macros">
                                 <div class="macro-item">Б {{ food.proteins }}г</div>
                                 <div class="macro-item">Ж {{ food.fats }}г</div>
@@ -329,6 +405,7 @@
                 <div class="meal-header">
                     <div class="meal-title lunch-title">Обед</div>
                     <div class="meal-calories">{{ daily_data.lunch.total }} ккал</div>
+                    <div class="meal-grams">{{ daily_data.lunch.total }} г</div>
                     <a href="{{ url_for('add_meal') }}?meal_type=lunch" class="add-food-btn">
                         <span>+</span> добавить
                     </a>
@@ -340,11 +417,15 @@
                         <div class="food-item">
                             <div class="food-header">
                                 <div class="food-name">{{ food.name }}</div>
-                                <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
-                                    <button type="submit" class="delete-btn">×</button>
-                                </form>
+                                <div class="food-actions">
+                                    <a href="{{ url_for('edit_meal', id=food.id) }}" class="edit-btn">✏️</a>
+                                    <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
+                                        <button type="submit" class="delete-btn">×</button>
+                                    </form>
+                                </div>
                             </div>
                             <div class="food-calories">{{ food.calories }} ккал</div>
+                            <div class="food-grams">{{ food.grams }} вес г</div>
                             <div class="food-macros">
                                 <div class="macro-item">Б {{ food.proteins }}г</div>
                                 <div class="macro-item">Ж {{ food.fats }}г</div>
@@ -363,6 +444,7 @@
                 <div class="meal-header">
                     <div class="meal-title dinner-title">Ужин</div>
                     <div class="meal-calories">{{ daily_data.dinner.total }} ккал</div>
+                    <div class="meal-grams">{{ daily_data.dinner.total }} г</div>
                     <a href="{{ url_for('add_meal') }}?meal_type=dinner" class="add-food-btn">
                         <span>+</span> добавить
                     </a>
@@ -374,11 +456,54 @@
                         <div class="food-item">
                             <div class="food-header">
                                 <div class="food-name">{{ food.name }}</div>
-                                <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
-                                    <button type="submit" class="delete-btn">×</button>
-                                </form>
+                                <div class="food-actions">
+                                    <a href="{{ url_for('edit_meal', id=food.id) }}" class="edit-btn">✏️</a>
+                                    <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
+                                        <button type="submit" class="delete-btn">×</button>
+                                    </form>
+                                </div>
                             </div>
                             <div class="food-calories">{{ food.calories }} ккал</div>
+                            <div class="food-grams">{{ food.grams }} вес г</div>
+                            <div class="food-macros">
+                                <div class="macro-item">Б {{ food.proteins }}г</div>
+                                <div class="macro-item">Ж {{ food.fats }}г</div>
+                                <div class="macro-item">У {{ food.carbs }}г</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="food-item empty">Нет добавленных блюд</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Перекус -->
+            <div class="meal-card snack-card">
+                <div class="meal-header">
+                    <div class="meal-title snack-title">Перекус</div>
+                    <div class="meal-calories">{{ daily_data.snack.total }} ккал</div>
+                    <div class="meal-grams">{{ daily_data.snack.total }} г</div>
+                    <a href="{{ url_for('add_meal') }}?meal_type=snack" class="add-food-btn">
+                        <span>+</span> добавить
+                    </a>
+                </div>
+                
+                <div class="food-list">
+                    {% if daily_data.snack.foods %}
+                        {% for food in daily_data.snack.foods %}
+                        <div class="food-item">
+                            <div class="food-header">
+                                <div class="food-name">{{ food.name }}</div>
+                                <div class="food-actions">
+                                    <a href="{{ url_for('edit_meal', id=food.id) }}" class="edit-btn">✏️</a>
+                                    <form action="{{ url_for('delete_meal', id=food.id) }}" method="POST">
+                                        <button type="submit" class="delete-btn">×</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="food-calories">{{ food.calories }} ккал</div>
+                            <div class="food-grams">{{ food.grams }} вес г</div>
                             <div class="food-macros">
                                 <div class="macro-item">Б {{ food.proteins }}г</div>
                                 <div class="macro-item">Ж {{ food.fats }}г</div>
@@ -402,10 +527,30 @@
         </div>
 
         <div class="footer-nav">
-            <a href="{{ url_for('index') }}" class="nav-item active">рацион</a>
-            <a href="{{ url_for('stats') }}" class="nav-item">статистика</a>
-            <a href="{{ url_for('bmi') }}" class="nav-item">ИМТ</a>
-            <a href="{{ url_for('profile') }}" class="nav-item">профиль</a>
+            <a href="{{ url_for('index') }}"  style="color: rgb(10, 169, 222); text-decoration: none;" class="nav-item active">
+                <i>🥗</i>
+                <span>Рацион</span>
+            </a>
+            <a href="{{ url_for('dci') }}" class="nav-item">
+                <i>⚡</i>
+                <span>СНК</span>
+            </a>
+            <a href="{{ url_for('stats') }}" class="nav-item">
+                <i>📈</i>
+                <span>Статистика</span>
+            </a>
+            <a href="{{ url_for('bmi') }}" class="nav-item">
+                <i>📊</i>
+                <span>ИМТ</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item">
+                <i>👤</i>
+                <span>Профиль</span>
+            </a>
+            <a href="{{ url_for('fatsecret_search') }}" class="nav-item">
+                <i>🔍</i>
+                <span>Поиск</span>
+            </a>
         </div>
     </div>
 </body>

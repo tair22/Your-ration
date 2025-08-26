@@ -1,31 +1,620 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Статистика</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6cfa;
+            --secondary-color: #f8f9fa;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --highlight-color: #ff6b6b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: var(--text-color);
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .time-filter {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .time-filter button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .time-filter button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .stat-card .change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .change.up {
+            color: #4caf50;
+        }
+        
+        .change.down {
+            color: #f44336;
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .chart-toggle {
+            display: flex;
+            background-color: #f0f2f5;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        
+        .chart-toggle button {
+            padding: 6px 12px;
+            border: none;
+            background: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .chart-toggle button.active {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .date-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .average-stats {
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .average-stats h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .macro-stats {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .macro-item {
+            text-align: center;
+        }
+        
+        .macro-item .value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .macro-item .label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #888;
+            font-size: 12px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+        
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px 0;
+            color: #888;
+        }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .stats-table th,
+        .stats-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stats-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .stats-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .summary-row {
+            font-weight: bold;
+            background-color: #f0f7ff;
+        }
+        
+        .average-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
-    <div class="aero-panel">
-        <h1>Ваша статистика</h1>
-        
-        <table class="stats-table">
-            <tr>
-                <th>Дата</th>
-                <th>Калории</th>
-                <th>Белки</th>
-                <th>Жиры</th>
-                <th>Углеводы</th>
-            </tr>
-            {% for stat in stats %}
-            <tr>
-                <td>{{ stat.date.strftime('%d.%m.%Y') }}</td>
-                <td>{{ stat.total_calories|round(1) }}</td>
-                <td>{{ stat.total_proteins|round(1) }}г</td>
-                <td>{{ stat.total_fats|round(1) }}г</td>
-                <td>{{ stat.total_carbs|round(1) }}г</td>
-            </tr>
-            {% endfor %}
-        </table>
+    <div class="header">
+        <h1>Статистика</h1>
+        <button class="close-btn" onclick="window.history.back()">↑</button>
     </div>
+    
+    <div class="time-filter">
+        <button class="active" data-period="week">Неделя</button>
+        <button data-period="month">Месяц</button>
+        <button data-period="half-year">Полгода</button>
+        <button data-period="year">Год</button>
+    </div>
+    
+    <div id="statsContainer">
+        {% if stats %}
+            <!-- Сортируем статистику от самой ранней даты к самой поздней -->
+            {% set sorted_stats = stats|sort(attribute='date') %}
+            
+            <!-- Рассчитываем итоговые значения -->
+            {% set total_calories = sorted_stats|sum(attribute='total_calories') %}
+            {% set total_proteins = sorted_stats|sum(attribute='total_proteins') %}
+            {% set total_fats = sorted_stats|sum(attribute='total_fats') %}
+            {% set total_carbs = sorted_stats|sum(attribute='total_carbs') %}
+            {% set total_grams = sorted_stats|sum(attribute='total_grams') %}
+            
+            <!-- Рассчитываем средние значения -->
+            {% set avg_calories = total_calories / sorted_stats|length if sorted_stats|length > 0 else 0 %}
+            {% set avg_proteins = total_proteins / sorted_stats|length if sorted_stats|length > 0 else 0 %}
+            {% set avg_fats = total_fats / sorted_stats|length if sorted_stats|length > 0 else 0 %}
+            {% set avg_carbs = total_carbs / sorted_stats|length if sorted_stats|length > 0 else 0 %}
+            {% set avg_grams = total_grams / sorted_stats|length if sorted_stats|length > 0 else 0 %}
+            
+            <!-- Таблица статистики -->
+            <table class="stats-table">
+                <tr>
+                    <th>Дата</th>
+                    <th>Калории</th>
+                    <th>Белки</th>
+                    <th>Жиры</th>
+                    <th>Углеводы</th>
+                    <th>Вес</th>
+                </tr>
+                
+                <!-- Верхняя строка с итогами -->
+                <tr class="summary-row">
+                    <td><strong>Итого за период</strong></td>
+                    <td><strong>{{ total_calories|round(1) }}</strong></td>
+                    <td><strong>{{ total_proteins|round(1) }}г</strong></td>
+                    <td><strong>{{ total_fats|round(1) }}г</strong></td>
+                    <td><strong>{{ total_carbs|round(1) }}г</strong></td>
+                    <td><strong>{{ total_grams|round(1) }}г</strong></td>
+                </tr>
+                
+                {% for stat in sorted_stats %}
+                <tr>
+                    <td>{{ stat.date.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ stat.total_calories|round(1) if stat.total_calories else 0 }}</td>
+                    <td>{{ stat.total_proteins|round(1) if stat.total_proteins else 0 }}г</td>
+                    <td>{{ stat.total_fats|round(1) if stat.total_fats else 0 }}г</td>
+                    <td>{{ stat.total_carbs|round(1) if stat.total_carbs else 0 }}г</td>
+                    <td>{{ stat.total_grams|round(1) if stat.total_grams else 0 }}г</td>
+                </tr>
+                {% endfor %}
+                
+                <!-- Нижняя строка со средними значениями -->
+                <tr class="average-row">
+                    <td><strong>Среднее за период</strong></td>
+                    <td><strong>{{ avg_calories|round(1) }}</strong></td>
+                    <td><strong>{{ avg_proteins|round(1) }}г</strong></td>
+                    <td><strong>{{ avg_fats|round(1) }}г</strong></td>
+                    <td><strong>{{ avg_carbs|round(1) }}г</strong></td>
+                    <td><strong>{{ avg_grams|round(1) }}г</strong></td>
+                </tr>
+            </table>
+            
+            <!-- Карточки с последней статистикой -->
+            {% if sorted_stats %}
+                {% set latest_stat = sorted_stats[-1] %} {# Берем последний элемент (самую позднюю дату) #}
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <h3>Калории</h3>
+                        <div class="value">{{ latest_stat.total_calories|round(1) if latest_stat.total_calories else 0 }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Белки</h3>
+                        <div class="value">{{ latest_stat.total_proteins|round(1) if latest_stat.total_proteins else 0 }}г</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Жиры</h3>
+                        <div class="value">{{ latest_stat.total_fats|round(1) if latest_stat.total_fats else 0 }}г</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Углеводы</h3>
+                        <div class="value">{{ latest_stat.total_carbs|round(1) if latest_stat.total_carbs else 0 }}г</div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- График -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Калории</div>
+                    <div class="chart-toggle">
+                        <button class="active">Ккал</button>
+                        <button>БЖУ</button>
+                        <button>Вес</button>
+                    </div>
+                </div>
+                <canvas id="caloriesChart"></canvas>
+                <div class="date-labels">
+                    {% for stat in sorted_stats[-7:] %} {# Последние 7 дней #}
+                        <span>{{ stat.date.strftime('%d.%m') }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Средние значения -->
+            <div class="average-stats">
+                <h2>Среднее значение за период</h2>
+                <div class="macro-stats">
+                    <div class="macro-item">
+                        <div class="value">
+                            {{ (sorted_stats|sum(attribute='total_proteins') / sorted_stats|length)|round(1) if sorted_stats else 0 }}
+                        </div>
+                        <div class="label">белки, г.</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="value">
+                            {{ (sorted_stats|sum(attribute='total_fats') / sorted_stats|length)|round(1) if sorted_stats else 0 }}
+                        </div>
+                        <div class="label">жиры, г.</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="value">
+                            {{ (sorted_stats|sum(attribute='total_carbs') / sorted_stats|length)|round(1) if sorted_stats else 0 }}
+                        </div>
+                        <div class="label">углеводы, г.</div>
+                    </div>
+                    <div class="macro-item">
+                        <div class="value">
+                            {{ (sorted_stats|sum(attribute='total_calories') / sorted_stats|length)|round(0) if sorted_stats else 0 }}
+                        </div>
+                        <div class="label">калории</div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="no-data">
+                <p>Нет данных для отображения</p>
+                <p>Сохраните дневной рацион, чтобы увидеть статистику</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="footer-nav">
+        <a href="{{ url_for('index') }}" class="nav-item">
+            <i>🥗</i>
+            <span>Рацион</span>
+        </a>
+        <a href="{{ url_for('dci') }}" class="nav-item">
+            <i>⚡</i>
+            <span>СНК</span>
+        </a>
+        <a href="{{ url_for('stats') }}" style="color: rgb(10, 169, 222); text-decoration: none;" class="nav-item active">
+            <i>📈</i>
+            <span>Статистика</span>
+        </a>
+        <a href="{{ url_for('bmi') }}" class="nav-item">
+            <i>📊</i>
+            <span>ИМТ</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i>👤</i>
+            <span>Профиль</span>
+        </a>
+        <a href="{{ url_for('fatsecret_search') }}" class="nav-item">
+            <i>🔍</i>
+            <span>Поиск</span>
+        </a>
+    </div>
+
+    <script>
+        // Инициализация графиков
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if stats %}
+            // Сортируем данные для графика от самой ранней даты к самой поздней
+            const sortedStats = [
+                {% for stat in stats|sort(attribute='date') %}
+                {
+                    date: '{{ stat.date.strftime("%d.%m") }}',
+                    calories: {{ stat.total_calories|round(1) if stat.total_calories else 0 }},
+                    proteins: {{ stat.total_proteins|round(1) if stat.total_proteins else 0 }},
+                    fats: {{ stat.total_fats|round(1) if stat.total_fats else 0 }},
+                    carbs: {{ stat.total_carbs|round(1) if stat.total_carbs else 0 }},
+                    grams: {{ stat.total_grams|round(1) if stat.total_grams else 0 }}
+                },
+                {% endfor %}
+            ];
+
+            const ctx = document.getElementById('caloriesChart').getContext('2d');
+            let currentChart = null;
+
+            const colors = {
+                calories: '#4a6cfa',
+                proteins: '#4caf50',
+                fats: '#ff6b6b',
+                carbs: '#ffa726',
+                grams: '#9c27b0'
+            };
+
+            function createChart(type) {
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+
+                let datasets = [];
+                let title = '';
+
+                switch(type) {
+                    case 'calories':
+                        title = 'Калории';
+                        datasets = [{
+                            label: 'Калории',
+                            data: sortedStats.map(stat => stat.calories),
+                            borderColor: colors.calories,
+                            tension: 0.4,
+                            fill: false,
+                            pointBackgroundColor: colors.calories,
+                            pointRadius: 4,
+                        }];
+                        break;
+
+                    case 'bju':
+                        title = 'БЖУ';
+                        datasets = [
+                            {
+                                label: 'Белки',
+                                data: sortedStats.map(stat => stat.proteins),
+                                borderColor: colors.proteins,
+                                tension: 0.4,
+                                fill: false,
+                                pointBackgroundColor: colors.proteins,
+                                pointRadius: 3,
+                            },
+                            {
+                                label: 'Жиры',
+                                data: sortedStats.map(stat => stat.fats),
+                                borderColor: colors.fats,
+                                tension: 0.4,
+                                fill: false,
+                                pointBackgroundColor: colors.fats,
+                                pointRadius: 3,
+                            },
+                            {
+                                label: 'Углеводы',
+                                data: sortedStats.map(stat => stat.carbs),
+                                borderColor: colors.carbs,
+                                tension: 0.4,
+                                fill: false,
+                                pointBackgroundColor: colors.carbs,
+                                pointRadius: 3,
+                            }
+                        ];
+                        break;
+
+                    case 'weight':
+                        title = 'Вес';
+                        datasets = [{
+                            label: 'Вес',
+                            data: sortedStats.map(stat => stat.grams),
+                            borderColor: colors.grams,
+                            tension: 0.4,
+                            fill: false,
+                            pointBackgroundColor: colors.grams,
+                            pointRadius: 4,
+                        }];
+                        break;
+                }
+
+                document.querySelector('.chart-title').textContent = title;
+
+                currentChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedStats.map(stat => stat.date),
+                        datasets: datasets
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    display: true,
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    stepSize: 50
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: type === 'bju',
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Инициализируем график калорий по умолчанию
+            createChart('calories');
+
+            // Переключение между графиками
+            document.querySelectorAll('.chart-toggle button').forEach((button, index) => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-toggle button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const chartTypes = ['calories', 'bju', 'weight'];
+                    createChart(chartTypes[index]);
+                });
+            });
+
+            {% endif %}
+            
+            // Переключение между периодами
+            document.querySelectorAll('.time-filter button').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.time-filter button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const period = this.getAttribute('data-period');
+                    // Здесь будет загрузка данных за выбранный период
+                    alert('Загрузка данных за ' + period);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

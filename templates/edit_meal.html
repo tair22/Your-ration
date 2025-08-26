@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавить блюдо</title>
+    <title>Редактировать блюдо</title>
     <link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}">
     <style>
         .aero-panel {
@@ -114,7 +114,7 @@
 </head>
 <body>
     <div class="aero-panel">
-        <h1>Добавить блюдо</h1>
+        <h1>Редактировать блюдо</h1>
         
         {% if error %}
         <div class="error-message">{{ error }}</div>
@@ -128,33 +128,34 @@
             <select class="aero-input" name="meal_type" required>
                 <option value="">Выберите прием пищи</option>
                 {% for meal_type in meal_types %}
-                <option value="{{ meal_type }}" {% if default_meal_type == meal_type %}selected{% endif %}>
+                <option value="{{ meal_type }}" {% if meal.meal_type == meal_type %}selected{% endif %}>
                     {{ meal_type|capitalize }}
                 </option>
                 {% endfor %}
             </select>
             
-            <input type="text" class="aero-input" name="name" placeholder="Название блюда" required>
+            <input type="text" class="aero-input" name="name" placeholder="Название блюда" 
+                   value="{{ meal.name }}" required>
             
             <div class="input-group">
                 <input type="number" step="0.1" class="aero-input" id="grams" name="grams" 
-                       placeholder="Вес (г)" value="100" required min="0.1">
+                       placeholder="Вес (г)" value="{{ meal.grams }}" required min="0.1">
                 <button type="button" class="reset-btn" onclick="resetTo100g()">↺</button>
             </div>
             
             <!-- Поля для ввода на 100г -->
             <span class="nutrition-label">На 100г продукта (можно оставить 0):</span>
             <input type="number" step="0.1" class="aero-input optional-field" id="calories-per-100g" 
-                   name="calories_per_100g" placeholder="Калории на 100г (ккал)" value="0" min="0">
+                   name="calories_per_100g" placeholder="Калории на 100г (ккал)" min="0">
             
             <input type="number" step="0.1" class="aero-input optional-field" id="proteins-per-100g" 
-                   name="proteins_per_100g" placeholder="Белки на 100г (г)" value="0" min="0">
+                   name="proteins_per_100g" placeholder="Белки на 100г (г)" min="0">
             
             <input type="number" step="0.1" class="aero-input optional-field" id="fats-per-100g" 
-                   name="fats_per_100g" placeholder="Жиры на 100г (г)" value="0" min="0">
+                   name="fats_per_100g" placeholder="Жиры на 100г (г)" min="0">
             
             <input type="number" step="0.1" class="aero-input optional-field" id="carbs-per-100g" 
-                   name="carbs_per_100g" placeholder="Углеводы на 100г (г)" value="0" min="0">
+                   name="carbs_per_100g" placeholder="Углеводы на 100г (г)" min="0">
             
             <!-- Поля для отображения рассчитанных значений -->
             <span class="nutrition-label">Рассчитано для указанного веса:</span>
@@ -171,16 +172,16 @@
                    placeholder="Углеводы (г)" readonly>
             
             <!-- Скрытые поля для отправки рассчитанных значений -->
-            <input type="hidden" id="calories" name="calories" value="0">
-            <input type="hidden" id="proteins" name="proteins" value="0">
-            <input type="hidden" id="fats" name="fats" value="0">
-            <input type="hidden" id="carbs" name="carbs" value="0">
+            <input type="hidden" id="calories" name="calories" value="{{ meal.calories }}">
+            <input type="hidden" id="proteins" name="proteins" value="{{ meal.proteins }}">
+            <input type="hidden" id="fats" name="fats" value="{{ meal.fats }}">
+            <input type="hidden" id="carbs" name="carbs" value="{{ meal.carbs }}">
             
             <div class="result-display" id="result-display">
-                Введите данные на 100г продукта (можно оставить 0)
+                Данные на 100г: 0 ккал | Б: 0г | Ж: 0г | У: 0г
             </div>
             
-            <button type="submit" class="aero-button">Добавить</button>
+            <button type="submit" class="aero-button">Сохранить изменения</button>
         </form>
         
         <div class="form-footer">
@@ -189,11 +190,11 @@
     </div>
 
     <script>
-        // Функция пересчета питательной ценности
+        // Функция пересчета питательной ценности при изменении веса
         function recalculateNutrition() {
             const grams = parseFloat(document.getElementById('grams').value) || 100;
             
-            // Получаем значения на 100г (может быть 0)
+            // Получаем значения на 100г
             const caloriesPer100g = parseFloat(document.getElementById('calories-per-100g').value) || 0;
             const proteinsPer100g = parseFloat(document.getElementById('proteins-per-100g').value) || 0;
             const fatsPer100g = parseFloat(document.getElementById('fats-per-100g').value) || 0;
@@ -218,9 +219,37 @@
             document.getElementById('fats').value = calculatedFats;
             document.getElementById('carbs').value = calculatedCarbs;
             
-            // Показываем результаты
+            // Показываем данные на 100г
             document.getElementById('result-display').textContent = 
-                `Рассчитано: ${calculatedCalories} ккал | Б: ${calculatedProteins}г | Ж: ${calculatedFats}г | У: ${calculatedCarbs}г`;
+                `Данные на 100г: ${caloriesPer100g} ккал | Б: ${proteinsPer100g}г | Ж: ${fatsPer100g}г | У: ${carbsPer100g}г`;
+        }
+        
+        // Функция пересчета значений на 100г при изменении питательной ценности
+        function recalculatePer100g() {
+            const grams = parseFloat(document.getElementById('grams').value) || 100;
+            
+            // Получаем введенные значения
+            const calories = parseFloat(document.getElementById('calories-display').value) || 0;
+            const proteins = parseFloat(document.getElementById('proteins-display').value) || 0;
+            const fats = parseFloat(document.getElementById('fats-display').value) || 0;
+            const carbs = parseFloat(document.getElementById('carbs-display').value) || 0;
+            
+            // Рассчитываем значения на 100г
+            const ratio = 100 / grams;
+            const caloriesPer100g = (calories * ratio).toFixed(1);
+            const proteinsPer100g = (proteins * ratio).toFixed(1);
+            const fatsPer100g = (fats * ratio).toFixed(1);
+            const carbsPer100g = (carbs * ratio).toFixed(1);
+            
+            // Обновляем скрытые поля с данными на 100г
+            document.getElementById('calories-per-100g').value = caloriesPer100g;
+            document.getElementById('proteins-per-100g').value = proteinsPer100g;
+            document.getElementById('fats-per-100g').value = fatsPer100g;
+            document.getElementById('carbs-per-100g').value = carbsPer100g;
+            
+            // Показываем данные на 100г
+            document.getElementById('result-display').textContent = 
+                `Данные на 100г: ${caloriesPer100g} ккал | Б: ${proteinsPer100g}г | Ж: ${fatsPer100g}г | У: ${carbsPer100g}г`;
         }
         
         // Функция сброса к 100г
@@ -231,16 +260,38 @@
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            // Добавляем обработчики событий для всех полей ввода
-            const inputFields = [
-                document.getElementById('grams'),
+            // Рассчитываем исходные значения на 100г
+            const grams = parseFloat("{{ meal.grams }}") || 100;
+            const ratio = 100 / grams;
+            
+            // Заполняем поля с данными на 100г
+            document.getElementById('calories-per-100g').value = (parseFloat("{{ meal.calories }}") * ratio).toFixed(1);
+            document.getElementById('proteins-per-100g').value = (parseFloat("{{ meal.proteins }}") * ratio).toFixed(1);
+            document.getElementById('fats-per-100g').value = (parseFloat("{{ meal.fats }}") * ratio).toFixed(1);
+            document.getElementById('carbs-per-100g').value = (parseFloat("{{ meal.carbs }}") * ratio).toFixed(1);
+            
+            // Заполняем поля для отображения текущими значениями
+            document.getElementById('calories-display').value = parseFloat("{{ meal.calories }}").toFixed(1);
+            document.getElementById('proteins-display').value = parseFloat("{{ meal.proteins }}").toFixed(1);
+            document.getElementById('fats-display').value = parseFloat("{{ meal.fats }}").toFixed(1);
+            document.getElementById('carbs-display').value = parseFloat("{{ meal.carbs }}").toFixed(1);
+            
+            // Показываем данные на 100г
+            recalculatePer100g();
+            
+            // Добавляем обработчики событий для поля веса
+            document.getElementById('grams').addEventListener('input', recalculateNutrition);
+            document.getElementById('grams').addEventListener('change', recalculateNutrition);
+            
+            // Добавляем обработчики для полей питательной ценности на 100г
+            const per100gFields = [
                 document.getElementById('calories-per-100g'),
                 document.getElementById('proteins-per-100g'),
                 document.getElementById('fats-per-100g'),
                 document.getElementById('carbs-per-100g')
             ];
             
-            inputFields.forEach(field => {
+            per100gFields.forEach(field => {
                 field.addEventListener('input', recalculateNutrition);
                 field.addEventListener('change', recalculateNutrition);
             });

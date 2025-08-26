@@ -4,8 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мой профиль</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        /* Добавляем стили для кнопки выхода */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to bottom, #ff6b6b, #d74c4c);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(to bottom, #ff7878, #e25757);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
         .profile-container {
             max-width: 600px;
             margin: 20px auto;
@@ -14,6 +37,7 @@
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 0 20px rgba(0, 120, 215, 0.2);
+            position: relative; /* Для позиционирования кнопки выхода */
         }
 
         .profile-header {
@@ -26,6 +50,7 @@
             font-weight: 300;
         }
 
+        /* Остальные стили остаются без изменений */
         .profile-form .form-group {
             margin-bottom: 20px;
         }
@@ -113,6 +138,33 @@
             background: #f2dede;
             color: #a94442;
         }
+        
+        .password-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 90, 158, 0.2);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #0078d7;
+        }
+        
+        .password-input-container {
+            position: relative;
+        }
+        
+        .section-title {
+            color: #005a9e;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +172,9 @@
     <div class="aero-bubble" style="width: 80px; height: 80px; bottom: 15%; right: 25%;"></div>
 
     <div class="profile-container">
+        <!-- Добавляем кнопку выхода -->
+        <a href="{{ url_for('logout') }}" class="logout-btn">Выйти</a>
+        
         <div class="profile-header">
             <h1>Мой профиль</h1>
         </div>
@@ -135,6 +190,8 @@
         </div>
 
         <form class="profile-form" method="POST">
+            <input type="hidden" name="form_type" value="profile">
+            
             <div class="form-group">
                 <label for="login">Логин</label>
                 <input type="text" id="login" value="{{ user.login }}" readonly>
@@ -166,17 +223,109 @@
                         <input type="radio" id="female" name="gender" value="female" {% if user.gender == 'female' %}checked{% endif %}>
                         <label for="female">Женский</label>
                     </div>
-                    <div class="gender-option">
-                        <input type="radio" id="other" name="gender" value="other" {% if not user.gender or user.gender == 'other' %}checked{% endif %}>
-                        <label for="other">Другой</label>
-                    </div>
                 </div>
             </div>
 
             <button type="submit" class="save-btn">Сохранить изменения</button>
         </form>
+        
+        <!-- Секция для смены пароля -->
+        <div class="password-section">
+            <h2 class="section-title">Смена пароля</h2>
+            <form class="profile-form" method="POST">
+                <input type="hidden" name="form_type" value="password_change">
+                
+                <div class="form-group">
+                    <label for="current_password">Текущий пароль</label>
+                    <div class="password-input-container">
+                        <input type="password" id="current_password" name="current_password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('current_password')">👁️</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">Новый пароль</label>
+                    <div class="password-input-container">
+                        <input type="password" id="new_password" name="new_password" required minlength="6">
+                        <button type="button" class="password-toggle" onclick="togglePassword('new_password')">👁️</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Подтвердите новый пароль</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">👁️</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="save-btn">Изменить пароль</button>
+            </form>
+        </div>
 
-        <a href="{{ url_for('index') }}" class="back-link">← На главную</a>
+        <div class="footer-nav">
+            <a href="{{ url_for('index') }}" style="text-decoration: none;" class="nav-item active">
+                <i>🥗</i>
+                <span>Рацион</span>
+            </a>
+            <a href="{{ url_for('dci') }}" style="text-decoration: none;" class="nav-item">
+                <i>⚡</i>
+                <span>СНК</span>
+            </a>
+            <a href="{{ url_for('stats') }}" style="text-decoration: none;" class="nav-item">
+                <i>📈</i>
+                <span>Статистика</span>
+            </a>
+            <a href="{{ url_for('bmi') }}" style="text-decoration: none;" class="nav-item">
+                <i>📊</i>
+                <span>ИМТ</span>
+            </a>
+            <a href="{{ url_for('profile') }}" style="color: rgb(10, 169, 222); text-decoration: none;" class="nav-item">
+                <i>👤</i>
+                <span>Профиль</span>
+            </a>
+            <a href="{{ url_for('fatsecret_search') }}" style="text-decoration: none;" class="nav-item">
+                <i>🔍</i>
+                <span>Поиск</span>
+            </a>
+        </div>
+
     </div>
+
+    <script>
+        // Функция для переключения видимости пароля
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleButton = passwordInput.nextElementSibling;
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = '👁️';
+            }
+        }
+        
+        // Проверка совпадения паролей перед отправкой формы
+        document.querySelectorAll('form').forEach(form => {
+            if (form.querySelector('input[name="form_type"]').value === 'password_change') {
+                form.addEventListener('submit', function(e) {
+                    const newPassword = document.getElementById('new_password').value;
+                    const confirmPassword = document.getElementById('confirm_password').value;
+                    
+                    if (newPassword !== confirmPassword) {
+                        e.preventDefault();
+                        alert('Новый пароль и подтверждение не совпадают!');
+                    }
+                    
+                    if (newPassword.length < 6) {
+                        e.preventDefault();
+                        alert('Пароль должен содержать не менее 6 символов!');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

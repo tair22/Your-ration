@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор суточной нормы калорий (DCI)</title>
+    <style>
+        :root {
+            --primary-color: #4a8eff;
+            --secondary-color: #ff7e5f;
+            --accent-color: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #333;
+            --light-text: #666;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #2b6cb0);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .calculator-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 15px;
+        }
+        
+        .form-section {
+            flex: 1;
+            min-width: 100%;
+            padding: 15px;
+        }
+        
+        .result-section {
+            flex: 1;
+            min-width: 100%;
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+        
+        .formula-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .formula-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .formula-btn.active {
+            border-color: var(--primary-color);
+            background-color: #e8f4ff;
+            color: var(--primary-color);
+        }
+        
+        .profile-data {
+            background-color: #e8f4ff;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+        
+        .profile-data-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .profile-data-label {
+            font-weight: 600;
+        }
+        
+        .profile-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .disclaimer {
+            background-color: #fff3f3;
+            border: 1px solid #ffcccc;
+            border-radius: var(--border-radius);
+            padding: 12px;
+            margin: 15px 0;
+            color: #d63384;
+            font-size: 14px;
+        }
+        
+        .disclaimer h4 {
+            margin-bottom: 8px;
+            color: #d63384;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+        }
+        
+        .disclaimer ul {
+            margin-left: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .disclaimer li {
+            margin-bottom: 4px;
+        }
+        
+        .dietitian-contact {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .dietitian-contact h3 {
+            color: #1976d2;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .dietitian-btn {
+            background: linear-gradient(to right, #1976d2, #2196f3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        
+        .formula {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        
+        .formula-line {
+            margin-bottom: 6px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .formula-line .label {
+            min-width: 60px;
+            font-weight: bold;
+        }
+        
+        .formula-line .operation {
+            margin: 0 5px;
+            flex: 1;
+        }
+        
+        .formula-line .value {
+            margin-left: auto;
+        }
+        
+        .formula-description {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--light-text);
+            font-style: italic;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .calculate-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .result-title {
+            font-size: 16px;
+            color: var(--light-text);
+            margin-bottom: 8px;
+        }
+        
+        .result-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .formula-used {
+            font-size: 13px;
+            color: var(--light-text);
+            margin-top: 4px;
+        }
+        
+        .bju-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .bju-item {
+            flex: 1;
+            min-width: 30%;
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .bju-title {
+            font-size: 13px;
+            color: var(--light-text);
+            margin-bottom: 4px;
+        }
+        
+        .bju-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .bju-protein { color: #4a8eff; }
+        .bju-fat { color: #ff7e5f; }
+        .bju-carbs { color: #2ecc71; }
+        
+        .bju-percent {
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        .activity-info {
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--light-text);
+        }
+        
+        .activity-info pre {
+            font-family: inherit;
+            white-space: pre-wrap;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        /* Обновленные стили для мобильного меню */
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            width: 100%;
+            margin: 10px 0;
+            font-weight: bold;
+            cursor: pointer;
+            position: sticky;
+            bottom: 10px;
+            z-index: 100;
+        }
+        
+        .footer-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            background: white;
+            padding: 12px 0;
+            border-radius: var(--border-radius);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Стиль для скрытого меню */
+        .footer-nav.hidden {
+            transform: translateY(100%);
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        /* Стиль для показанного меню */
+        .footer-nav.visible {
+            transform: translateY(0);
+            opacity: 1;
+            height: auto;
+            padding: 12px 0;
+        }
+        
+        /* Улучшенные стили для иконок навигации */
+        .nav-item {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            text-decoration: none;
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 5px;
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover {
+            background-color: #f0f8ff;
+            border-radius: 8px;
+        }
+        
+        .nav-item.active {
+            color: #0078d7;
+            font-weight: 500;
+        }
+        
+        .nav-item div {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        
+        /* Адаптивность для больших экранов */
+        @media (min-width: 768px) {
+            .mobile-menu-toggle {
+                display: none !important;
+            }
+            
+            .footer-nav {
+                display: flex !important;
+                transform: none !important;
+                opacity: 1 !important;
+                height: auto !important;
+                padding: 12px 0 !important;
+            }
+        }
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 767px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .footer-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-radius: 15px 15px 0 0;
+                z-index: 99;
+                margin-top: 0;
+                box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
+            }
+        }
+        
+        /* Адаптивность для очень маленьких экранов */
+        @media (max-width: 360px) {
+            .nav-item {
+                min-width: 50px;
+                font-size: 11px;
+                padding: 6px 3px;
+            }
+            
+            .nav-item div {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Калькулятор суточной нормы калорий (DCI)</h1>
+            <p class="subtitle">Рассчитайте вашу индивидуальную потребность в калориях и БЖУ</p>
+        </header>
+        
+        <div class="calculator-container">
+            <div class="form-section">
+                <h2>Ваши данные</h2>
+                
+                <!-- Блок с предупреждением о неточности -->
+                <div class="disclaimer">
+                    <h4>⚠️ Важная информация</h4>
+                    <p>Данный калькулятор предоставляет <strong>ориентировочные</strong> значения. Реальные потребности могут отличаться из-за:</p>
+                    <ul>
+                        <li>Индивидуальных особенностей метаболизма</li>
+                        <li>Состояния здоровья и приема medications</li>
+                        <li>Уровня гормонального фона</li>
+                        <li>Состава тела (соотношение мышц и жира)</li>
+                        <li>Точности оценки уровня активности</li>
+                    </ul>
+                    <p><strong>Для точного расчета рекомендуем обратиться к специалисту!</strong></p>
+                </div>
+                
+                {% if user and user.weight and user.height and user.age and user.gender %}
+                <div class="profile-data">
+                    <h3>Данные из профиля</h3>
+                    <div class="profile-data-item">
+                        <span class="profile-data-label">Вес:</span>
+                        <span id="profile-weight">{{ user.weight }} кг</span>
+                    </div>
+                    <div class="profile-data-item">
+                        <span class="profile-data-label">Рост:</span>
+                        <span id="profile-height">{{ user.height }} см</span>
+                    </div>
+                    <div class="profile-data-item">
+                        <span class="profile-data-label">Возраст:</span>
+                        <span id="profile-age">{{ user.age }} лет</span>
+                    </div>
+                    <div class="profile-data-item">
+                        <span class="profile-data-label">Пол:</span>
+                        <span id="profile-gender">
+                            {% if user.gender == 'female' %}Женский{% else %}Мужской{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="profile-warning">
+                    <p><strong>Профиль не заполнен полностью!</strong></p>
+                    <p>Для расчета DCI необходимо заполнить все данные в профиле (вес, рост, возраст, пол).</p>
+                    <a href="{{ url_for('profile') }}" class="calculate-btn" style="display: block; text-align: center; margin-top: 10px;">
+                        Перейти в профиль
+                    </a>
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="formula">Формула расчета</label>
+                    <div class="formula-selector">
+                        <div class="formula-btn active" data-formula="mifflin">
+                            Миффлин-Сан Жеор
+                        </div>
+                        <div class="formula-btn" data-formula="harris">
+                            Харрис-Бенедикт
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activity">Уровень физической активности</label>
+                    <select id="activity">
+                        <option value="1.2">Минимальная (сидячий образ жизни)</option>
+                        <option value="1.375">Низкая (легкие тренировки 1-3 раза в неделю)</option>
+                        <option value="1.55">Умеренная (тренировки 3-5 раз в неделю)</option>
+                        <option value="1.725">Высокая (интенсивные тренировки 6-7 раз в неделю)</option>
+                        <option value="1.9">Очень высокая (профессиональные тренировки)</option>
+                    </select>
+                </div>
+                
+                {% if user and user.weight and user.height and user.age and user.gender %}
+                <h3>Формула расчета:</h3>
+                <div class="formula" id="formula-display">
+                    <!-- Здесь будет отображаться выбранная формула -->
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateDCI()">Рассчитать норму</button>
+                {% endif %}
+                
+                <!-- Блок с контактами диетологов -->
+                <div class="dietitian-contact">
+                    <h3>👨‍⚕️ Совет</h3>
+                    <p>Для получения точных рекомендаций по питанию и индивидуального плана обратитесь к сертифицированному диетологу</p>
+                    <button class="dietitian-btn" onclick="showDietitianInfo()">
+                        Подробнее
+                    </button>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <h2>Ваши результаты</h2>
+                
+                <!-- Дополнительное предупреждение в результатах -->
+                <div class="disclaimer" style="margin-top: 0;">
+                    <h4>📋 Обратите внимание</h4>
+                    <p>Представленные значения являются <strong>ориентировочными</strong>. Для достижения лучших результатов:</p>
+                    <ul>
+                        <li>Начинайте с малого и постепенно корректируйте рацион</li>
+                        <li>Следите за самочувствием и прогрессом</li>
+                        <li>Регулярно консультируйтесь со специалистом</li>
+                    </ul>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">Суточная норма калорий (DCI)</div>
+                    <div class="result-value" id="dci-result">—</div>
+                    <div class="formula-used" id="formula-used">—</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-title">Рекомендуемое БЖУ в день</div>
+                    
+                    <div class="bju-container">
+                        <div class="bju-item">
+                            <div class="bju-title">БЕЛКИ</div>
+                            <div class="bju-value bju-protein" id="protein-value">— г</div>
+                            <div class="bju-percent" id="protein-percent">30%</div>
+                        </div>
+                        
+                        <div class="bju-item">
+                            <div class="bju-title">ЖИРЫ</div>
+                            <div class="bju-value bju-fat" id="fat-value">— г</div>
+                            <div class="bju-percent" id="fat-percent">25%</div>
+                        </div>
+                        
+                        <div class="bju-item">
+                            <div class="bju-title">УГЛЕВОДЫ</div>
+                            <div class="bju-value bju-carbs" id="carbs-value">— г</div>
+                            <div class="bju-percent" id="carbs-percent">45%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="activity-info">
+                    <p><strong>Коэффициент активности:</strong></p>
+                    <ul>
+                        <pre>• 1.2 - Минимальная активность (сидячая работа)</pre>
+                        <pre>• 1.375 - Низкая активность (легкие тренировки 1-3 раза в неделю)</pre>
+                        <pre>• 1.55 - Умеренная активность (тренировки 3-5 раз в неделю)</pre>
+                        <pre>• 1.725 - Высокая активность (интенсивные тренировки 6-7 раз в неделю)</pre>
+                        <pre>• 1.9 - Очень высокая активность (профессиональный спорт)</pre>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">📋 Показать меню</button>
+
+        <div class="footer-nav hidden" id="footerNav">
+            <a href="{{ url_for('index') }}" class="nav-item">
+                <div>🥗</div>
+                <span>Рацион</span>
+            </a>
+            <a href="{{ url_for('dci') }}" style="color: rgb(10, 169, 222); text-decoration: none;" class="nav-item active">
+                <div>⚡</div>
+                <span>СНК</span>
+            </a>
+            <a href="{{ url_for('stats') }}" class="nav-item">
+                <div>📈</div>
+                <span>Статистика</span>
+            </a>
+            <a href="{{ url_for('bmi') }}" class="nav-item">
+                <div>📊</div>
+                <span>ИМТ</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item">
+                <div>👤</div>
+                <span>Профиль</span>
+            </a>
+            <a href="{{ url_for('fatsecret_search') }}" class="nav-item">
+                <div>🔍</div>
+                <span>Поиск</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Данные из профиля пользователя
+        {% if user and user.weight and user.height and user.age and user.gender %}
+        const userData = {
+            weight: {{ user.weight }},
+            height: {{ user.height }},
+            age: {{ user.age }},
+            gender: '{{ user.gender }}'
+        };
+        {% else %}
+        const userData = null;
+        {% endif %}
+
+        // Текущая выбранная формула
+        let selectedFormula = 'mifflin';
+        
+        // Инициализация выбора формулы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчики для кнопок выбора формулы
+            document.querySelectorAll('.formula-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.formula-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedFormula = this.getAttribute('data-formula');
+                    updateFormulaDisplay();
+                    
+                    if (userData) {
+                        calculateDCI();
+                    }
+                });
+            });
+            
+            // Обновляем отображение формулы при загрузке
+            updateFormulaDisplay();
+            
+            // Автоматически рассчитываем при загрузке страницы
+            if (userData) {
+                calculateDCI();
+            }
+            
+            // Обработчик мобильного меню
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const footerNav = document.getElementById('footerNav');
+            
+            // Функция для переключения видимости меню
+            function toggleMenu() {
+                if (footerNav.classList.contains('hidden')) {
+                    footerNav.classList.remove('hidden');
+                    footerNav.classList.add('visible');
+                    mobileMenuToggle.textContent = '✕ Скрыть меню';
+                } else {
+                    footerNav.classList.remove('visible');
+                    footerNav.classList.add('hidden');
+                    mobileMenuToggle.textContent = '📋 Показать меню';
+                }
+            }
+            
+            // Обработчик клика по кнопке меню
+            mobileMenuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleMenu();
+            });
+            
+            // Закрытие меню при клике вне его области
+            document.addEventListener('click', function(e) {
+                if (footerNav.classList.contains('visible') && 
+                    !footerNav.contains(e.target) && 
+                    e.target !== mobileMenuToggle) {
+                    footerNav.classList.remove('visible');
+                    footerNav.classList.add('hidden');
+                    mobileMenuToggle.textContent = '📋 Показать меню';
+                }
+            });
+            
+            // Предотвращение закрытия меню при клике внутри него
+            footerNav.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Настройка начального состояния для мобильных устройств
+            if (window.innerWidth < 768) {
+                footerNav.classList.add('hidden');
+                footerNav.classList.remove('visible');
+                mobileMenuToggle.style.display = 'block';
+            } else {
+                footerNav.classList.remove('hidden');
+                footerNav.classList.add('visible');
+                mobileMenuToggle.style.display = 'none';
+            }
+        });
+        
+        // Обработчик изменения размера окна
+        window.addEventListener('resize', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const footerNav = document.getElementById('footerNav');
+            
+            if (window.innerWidth < 768) {
+                footerNav.classList.add('hidden');
+                footerNav.classList.remove('visible');
+                mobileMenuToggle.style.display = 'block';
+                mobileMenuToggle.textContent = '📋 Показать меню';
+            } else {
+                footerNav.classList.remove('hidden');
+                footerNav.classList.add('visible');
+                mobileMenuToggle.style.display = 'none';
+            }
+        });
+        
+        // Функция для показа информации о диетологах
+        function showDietitianInfo() {
+            alert("👨‍⚕️ Консультация диетолога\n\nДля получения профессиональной помощи:\n\n• Обратитесь в медицинский центр\n• Посетите сайты: nutritionist.ru, docdoc.ru\n• Проконсультируйтесь с врачом в поликлинике\n\nПрофессиональная консультация поможет:\n• Получить точный расчет потребностей\n• Учесть индивидуальные особенности\n• Составить оптимальный план питания");
+        }
+        
+        // Обновление отображения формулы
+        function updateFormulaDisplay() {
+            const formulaDisplay = document.getElementById('formula-display');
+            
+            if (selectedFormula === 'mifflin') {
+                formulaDisplay.innerHTML = `
+                    <div class="formula-line">
+                        <span class="label">BMR =</span>
+                        <span class="operation">(10 × вес) + (6.25 × рост) - (5 × возраст)</span>
+                        <span class="operation">${userData.gender === 'female' ? '- 161' : '+ 5'}</span>
+                    </div>
+                    <div class="formula-line">
+                        <span class="label">DCI =</span>
+                        <span class="operation">BMR × коэффициент активности</span>
+                    </div>
+                    <div class="formula-description">
+                        Формула Миффлина-Сан Жеора (современная, более точная)
+                    </div>
+                `;
+            } else {
+                formulaDisplay.innerHTML = `
+                    <div class="formula-line">
+                        <span class="label">BMR =</span>
+                        <span class="operation">${userData.gender === 'female' ? '655.1 + (9.563 × вес) + (1.85 × рост) - (4.676 × возраст)' : '66.5 + (13.75 × вес) + (5.003 × рост) - (6.755 × возраст)'}</span>
+                    </div>
+                    <div class="formula-line">
+                        <span class="label">DCI =</span>
+                        <span class="operation">BMR × коэффициент активности</span>
+                    </div>
+                    <div class="formula-description">
+                        Формула Харриса-Бенедикта (классическая, немного завышает показатели)
+                    </div>
+                `;
+            }
+        }
+        
+        // Расчет BMR по формуле Миффлина-Сан Жеора
+        function calculateMifflinBMR(weight, height, age, gender) {
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            
+            if (gender === 'female') {
+                bmr -= 161;
+            } else {
+                bmr += 5;
+            }
+            
+            return bmr;
+        }
+        
+        // Расчет BMR по формуле Харриса-Бенедикта
+        function calculateHarrisBMR(weight, height, age, gender) {
+            if (gender === 'female') {
+                return 655.1 + (9.563 * weight) + (1.85 * height) - (4.676 * age);
+            } else {
+                return 66.5 + (13.75 * weight) + (5.003 * height) - (6.755 * age);
+            }
+        }
+        
+        function calculateDCI() {
+            if (!userData) {
+                alert('Для расчета необходимо заполнить профиль!');
+                return;
+            }
+            
+            // Получаем значения из формы
+            const activity = parseFloat(document.getElementById('activity').value);
+            
+            // Используем данные из профиля
+            const weight = userData.weight;
+            const height = userData.height;
+            const age = userData.age;
+            const gender = userData.gender;
+            
+            // Рассчитываем базовый метаболизм (BMR) по выбранной формуле
+            let bmr;
+            let formulaName;
+            
+            if (selectedFormula === 'mifflin') {
+                bmr = calculateMifflinBMR(weight, height, age, gender);
+                formulaName = "Миффлина-Сан Жеора";
+            } else {
+                bmr = calculateHarrisBMR(weight, height, age, gender);
+                formulaName = "Харриса-Бенедикта";
+            }
+            
+            // Умножаем на коэффициент активности
+            const dci = Math.round(bmr * activity);
+            
+            // Рассчитываем БЖУ (в граммах)
+            const proteinPercent = 0.3;   // 30% белка
+            const fatPercent = 0.25;      // 25% жиров
+            const carbsPercent = 0.45;    // 45% углеводов
+            
+            // 1г белка = 4 ккал, 1г жира = 9 ккал, 1г углеводов = 4 ккал
+            const proteinGrams = Math.round((dci * proteinPercent) / 4);
+            const fatGrams = Math.round((dci * fatPercent) / 9);
+            const carbsGrams = Math.round((dci * carbsPercent) / 4);
+            
+            // Отображаем результаты
+            document.getElementById('dci-result').textContent = dci + ' ккал';
+            document.getElementById('formula-used').textContent = 'По формуле ' + formulaName;
+            document.getElementById('protein-value').textContent = proteinGrams + ' г';
+            document.getElementById('fat-value').textContent = fatGrams + ' г';
+            document.getElementById('carbs-value').textContent = carbsGrams + ' г';
+            
+            document.getElementById('protein-percent').textContent = (proteinPercent * 100) + '%';
+            document.getElementById('fat-percent').textContent = (fatPercent * 100) + '%';
+            document.getElementById('carbs-percent').textContent = (carbsPercent * 100) + '%';
+        }
+    </script>
+</body>
+</html>

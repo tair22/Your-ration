@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Калькулятор ИМТ</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .bmi-container {
             max-width: 600px;
@@ -55,6 +55,112 @@
             background: #0078d7;
             color: white;
         }
+        
+        .disclaimer {
+            background-color: #fff3f3;
+            border: 1px solid #ffcccc;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #d63384;
+        }
+        
+        .disclaimer h4 {
+            margin-bottom: 10px;
+            color: #d63384;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .disclaimer ul {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .disclaimer li {
+            margin-bottom: 5px;
+        }
+        
+        .formula-info {
+            background-color: #e8f4ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .formula-info h3 {
+            color: #005a9e;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .formula-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-family: monospace;
+            margin: 15px 0;
+            border: 2px solid #c6e2ff;
+        }
+        
+        .formula-explanation {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .doctor-contact {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .doctor-contact h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        
+        .doctor-btn {
+            background: linear-gradient(to right, #1976d2, #2196f3);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #c62828;
+            margin: 20px 0;
+        }
+        
+        .profile-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #0078d7;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .profile-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -63,6 +169,37 @@
     
     <div class="bmi-container">
         <h1>Индекс массы тела (ИМТ)</h1>
+        
+        <!-- Блок с предупреждением о неточности -->
+        <div class="disclaimer">
+            <h4>⚠️ Ограничения ИМТ</h4>
+            <p>Индекс массы тела является <strong>ориентировочным</strong> показателем и имеет ограничения:</p>
+            <ul>
+                <li>Не учитывает состав тела (мышцы тяжелее жира)</li>
+                <li>Не подходит для спортсменов с развитой мускулатурой</li>
+                <li>Не учитывает возрастные особенности</li>
+                <li>Не различает распределение жира в организме</li>
+                <li>Может давать неточные результаты для беременных</li>
+            </ul>
+            <p><strong>Для точной оценки состава тела рекомендуем обратиться к специалисту!</strong></p>
+        </div>
+        
+        <!-- Информация о формуле расчета -->
+        <div class="formula-info">
+            <h3>📐 Как рассчитывается ИМТ?</h3>
+            <div class="formula-box">
+                ИМТ = вес (кг) / [рост (м)]²
+            </div>
+            <div class="formula-explanation">
+                Вес в килограммах делится на квадрат роста в метрах
+            </div>
+            
+            {% if bmi_value %}
+            <div class="formula-box">
+                ИМТ = {{ user.weight }} / ({{ user.height / 100 }} × {{ user.height / 100 }}) = {{ bmi_value }}
+            </div>
+            {% endif %}
+        </div>
         
         {% if bmi_value %}
         <div class="bmi-result">
@@ -89,15 +226,86 @@
                 <span>≥ 30</span>
             </div>
         </div>
+        
+        <!-- Дополнительное предупреждение в результатах -->
+        <div class="disclaimer">
+            <h4>📋 Интерпретация результатов</h4>
+            <p>ИМТ является скрининговым инструментом, а не диагностическим:</p>
+            <ul>
+                <li><strong>18.5-24.9</strong> - нормальный диапазон для большинства взрослых</li>
+                <li><strong>Менее 18.5</strong> - может указывать на недостаточность питания</li>
+                <li><strong>25-29.9</strong> - повышенный риск проблем со здоровьем</li>
+                <li><strong>30 и более</strong> - высокий риск осложнений со здоровьем</li>
+            </ul>
+        </div>
+        
         {% else %}
         <div class="error-message">
-            Для расчета ИМТ укажите ваш рост и вес в профиле
+            <h4>📊 Данные для расчета отсутствуют</h4>
+            <p>Для расчета Индекса Массы Тела необходимо указать ваш рост и вес в профиле</p>
+            <a href="{{ url_for('profile') }}" class="profile-link">
+                Перейти в профиль для заполнения данных
+            </a>
         </div>
         {% endif %}
         
-        <div class="form-footer" style="margin-top: 30px;">
-            <a href="{{ url_for('index') }}" class="aero-button">На главную</a>
+        <!-- Блок с контактами врачей -->
+        <div class="doctor-contact">
+            <h3>👨‍⚕️ Важное напоминание</h3>
+            <p>Для комплексной оценки здоровья и состава тела рекомендуется:</p>
+            <ul style="text-align: left; margin-left: 20px;">
+                <li>Консультация терапевта или эндокринолога</li>
+                <li>Биоимпедансный анализ состава тела</li>
+                <li>Анализ крови на основные показатели</li>
+                <li>Оценка окружности талии и других антропометрических данных</li>
+            </ul>
+            <button class="doctor-btn" onclick="showDoctorInfo()">
+                Почему это важно?
+            </button>
+        </div>
+        
+        <div class="footer-nav">
+            <a href="{{ url_for('index') }}" style="text-decoration: none;" class="nav-item active">
+                <i>🥗</i>
+                <span>Рацион</span>
+            </a>
+            <a href="{{ url_for('dci') }}" style="text-decoration: none;" class="nav-item">
+                <i>⚡</i>
+                <span>СНК</span>
+            </a>
+            <a href="{{ url_for('stats') }}" style="text-decoration: none;" class="nav-item">
+                <i>📈</i>
+                <span>Статистика</span>
+            </a>
+            <a href="{{ url_for('bmi') }}" style="color: rgb(10, 169, 222); text-decoration: none;" class="nav-item">
+                <i>📊</i>
+                <span>ИМТ</span>
+            </a>
+            <a href="{{ url_for('profile') }}" style="text-decoration: none;" class="nav-item">
+                <i>👤</i>
+                <span>Профиль</span>
+            </a>
+            <a href="{{ url_for('fatsecret_search') }}" style="text-decoration: none;" class="nav-item">
+                <i>🔍</i>
+                <span>Поиск</span>
+            </a>
         </div>
     </div>
+
+    <script>
+        // Функция для показа информации о врачах
+        function showDoctorInfo() {
+            alert("👨‍⚕️ Профессиональная оценка поможет:\n• Точно определить состав тела\n• Выявить возможные риски со здоровьем\n• Получить индивидуальные рекомендации");
+        }
+        
+        // Показ подробной информации об ИМТ при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if bmi_value %}
+            setTimeout(function() {
+                alert("💡 Информация об ИМТ\n\nВаш ИМТ: {{ bmi_value }} ({{ bmi_category }})\n\nПомните, что ИМТ:\n• Является ориентировочным показателем\n• Не учитывает мышечную массу\n• Может давать неточные результаты для спортсменов\n• Рекомендуется консультация врача для точной оценки");
+            }, 1000);
+            {% endif %}
+        });
+    </script>
 </body>
 </html>

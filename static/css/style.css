@@ -180,3 +180,38 @@ h1 {
     width: 18px;
     height: 18px;
 }
+
+:root {
+    --breakfast-color: #8BC34A;
+    --lunch-color: #2196F3;
+    --dinner-color: #FF9800;
+    --snack-color: #9C27B0;
+}
+
+.snack-card {
+    border-top: 5px solid var(--snack-color);
+}
+
+.snack-title {
+    color: var(--snack-color);
+}
+
+.food-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.edit-btn {
+    background: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 12px;
+}
